@@ -1,4 +1,4 @@
-# Ollama AI Chatbot — Version 2 (MySQL)
+# Ollama AI Chatbot
 
 ## What's new
 - Stores each question and Ollama answer in MySQL.
