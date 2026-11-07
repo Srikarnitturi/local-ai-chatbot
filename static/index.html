@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Local AI Chatbot</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e9edf4;background:#0d1423}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px}
+main{width:min(780px,100%);height:min(750px,90vh);min-height:420px;background:#172236;border:1px solid #34445f;border-radius:18px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px #0004}
+header{padding:20px 24px;border-bottom:1px solid #34445f}h1{margin:0;font-size:22px}header p{margin:7px 0 0;color:#9eb0c8;font-size:13px}
+#messages{padding:20px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.bubble{max-width:90%;padding:13px 16px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}.assistant{align-self:flex-start;background:#263652}.user{align-self:flex-end;background:#2563eb;color:#fff}.error{background:#70333d}
+form{display:flex;gap:10px;padding:16px;border-top:1px solid #34445f}input{flex:1;min-width:0;border:1px solid #4c5c78;background:#0d1423;border-radius:10px;padding:14px;color:white;font:inherit}button{border:0;border-radius:10px;padding:0 20px;background:#387aff;color:white;font-weight:600;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+small{color:#9eb0c8;padding:0 16px 10px;font-size:11px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Local AI Chatbot</h1><p>Python + FastAPI + Ollama · Version 2 · MySQL chat history</p></header>
+<section id="messages" aria-live="polite"><div class="bubble assistant">Hello! Ask me a question to get started.</div></section>
+<form id="chatForm"><input id="message" aria-label="Your message" placeholder="Type a question…" maxlength="4000" required autocomplete="off" /><button id="send" type="submit">Send</button></form>
+<small>Version 2: chats saved in MySQL. This browser tab keeps a session ID; AI memory is not enabled yet.</small>
+</main>
+<script>
+const storageKey='ollama-chat-session-v2';
+let sessionId=sessionStorage.getItem(storageKey);
+const form=document.getElementById('chatForm');
+const input=document.getElementById('message');
+const send=document.getElementById('send');
+const messages=document.getElementById('messages');
+function bubble(text,type){const node=document.createElement('div');node.className='bubble '+type;node.textContent=text;messages.append(node);messages.scrollTop=messages.scrollHeight;return node;}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();const message=input.value.trim();if(!message)return;
+ bubble(message,'user');input.value='';send.disabled=true;input.disabled=true;
+ const waiting=bubble('Thinking…','assistant');
+ try{
+  const response=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,session_id:sessionId})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.detail||'Request failed');
+  waiting.textContent=data.answer;sessionId=data.session_id;sessionStorage.setItem(storageKey,sessionId);
+ }catch(err){waiting.textContent='Error: '+err.message;waiting.classList.add('error');}
+ finally{send.disabled=false;input.disabled=false;input.focus();messages.scrollTop=messages.scrollHeight;}
+});
+</script>
+</body>
+</html>

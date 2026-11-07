@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Local files
+*.log
+*.db
+*.sqlite3
